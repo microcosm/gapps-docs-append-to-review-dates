@@ -31,7 +31,7 @@ function process(element) {
 
 function processDate(element) {
   const timestamp = element.asDate().getTimestamp();
-  Logger.log(timestamp + " is " + timeSince(timestamp));
+  Logger.log(timestamp + timeSince(timestamp));
 }
 
 function timeSince(date) {
@@ -51,12 +51,18 @@ function timeSince(date) {
     }
   }
 
-  if (interval > 1 || interval === 0) {
-    intervalType += 's';
+  return formatTimeSince(interval, intervalType);
+};
+
+function formatTimeSince(interval, intervalType) {
+  if (intervalType === 'day') {
+    if (interval === 0) return ' is today';
+    if (interval < 0) return ' is in the future';
   }
 
-  return interval + ' ' + intervalType + ' ago';
-};
+  if (interval > 1) intervalType += 's';
+  return ' is ' + interval + ' ' + intervalType + ' ago'
+}
 
 function log(element) {
   const elementType = element.getType();
