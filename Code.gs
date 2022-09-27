@@ -1,16 +1,62 @@
+const intervals = [
+  { label: 'year', seconds: 31536000 },
+  { label: 'month', seconds: 2592000 },
+  { label: 'day', seconds: 86400 },
+  { label: 'hour', seconds: 3600 },
+  { label: 'minute', seconds: 60 },
+  { label: 'second', seconds: 1 }
+];
+
 function onMinuteInterval() {
-  logChildren(DocumentApp.getActiveDocument().getBody());
+  processChildren(DocumentApp.getActiveDocument().getBody());
 }
 
-function logChildren(parent) {
+function processChildren(parent) {
   if(typeof parent.getNumChildren !== "function") return;
   const numChildren = parent.getNumChildren();
   for(var i = 0; i < numChildren; i++) {
     const child = parent.getChild(i);
-    log(child);
-    logChildren(child);
+    process(child);
+    processChildren(child);
   }
 }
+
+function process(element) {
+  const elementType = element.getType();
+  switch(elementType) {
+    case DocumentApp.ElementType.DATE:
+      processDate(element); break;
+  }
+}
+
+function processDate(element) {
+  const timestamp = element.asDate().getTimestamp();
+  Logger.log(timestamp + " is " + timeSince(timestamp));
+}
+
+function timeSince(date) {
+  var seconds = Math.floor((new Date() - date) / 1000);
+  var intervalType;
+
+  var interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) {
+    intervalType = 'year';
+  } else {
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) {
+      intervalType = 'month';
+    } else {
+      interval = Math.floor(seconds / 86400);
+      intervalType = 'day';
+    }
+  }
+
+  if (interval > 1 || interval === 0) {
+    intervalType += 's';
+  }
+
+  return interval + ' ' + intervalType + ' ago';
+};
 
 function log(element) {
   const elementType = element.getType();
