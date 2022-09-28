@@ -21,18 +21,31 @@ function process(element) {
 }
 
 function processDate(element) {
-  const nextSibling = element.getNextSibling();
-  if (isAppendable(nextSibling)) {
-    const timestamp = element.asDate().getTimestamp();
-    Logger.log(timestamp + " " + timeSince(timestamp));
-    log(nextSibling);
+  const previousSibling = element.getPreviousSibling();
+  if (isReviewLabel(previousSibling)) {
+    appendFriendlyText(element);
   }
 }
 
-function isAppendable(element) {
-  if(!hasFunction(element, 'asText')) return false;
-  const trimmedText = element.asText().getText().trim();
-  return trimmedText.startsWith('(') && trimmedText.endsWith(')');
+function appendFriendlyText(element) {
+  const friendlyText = ' ' + timeSince(element.asDate().getTimestamp());
+  const nextSibling = element.getNextSibling();
+
+  if (isTextElement(nextSibling)) {
+    nextSibling.setText(friendlyText);
+  } else {
+    element.getParent().asParagraph().appendText(friendlyText);
+  }
+}
+
+function isReviewLabel(element) {
+  return isTextElement(element)
+    && element.asText().getText().trim() === 'Last reviewed:'
+    && element.getParent().getType() === DocumentApp.ElementType.PARAGRAPH;
+}
+
+function isTextElement(element) {
+  return hasFunction(element, 'asText');
 }
 
 function timeSince(date) {
