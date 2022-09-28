@@ -1,9 +1,17 @@
 function onMinuteInterval() {
   const boundDocIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
+  const docs = [];
   boundDocIds.forEach(boundDocId => {
-    Logger.log('Opening ' + boundDocId);
-    processChildren(DocumentApp.openById(boundDocId).getBody());
-    Logger.log('Processing completed.');
+    Logger.log('Binding to ' + boundDocId);
+    try {
+      docs.push(DocumentApp.openById(boundDocId));
+    } catch (e) {
+      Logger.log('Could not bind to ' + boundDocId);
+    }
+  });
+  docs.forEach(doc => {
+    Logger.log('Processing ' + doc.getId());
+    processChildren(doc.getBody())
   });
 }
 
