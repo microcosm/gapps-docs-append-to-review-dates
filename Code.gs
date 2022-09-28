@@ -72,10 +72,10 @@ function processDate(date) {
 }
 
 function appendFriendlyText(date, friendlyText) {
-  const nextSibling = date.getNextSibling();
-
-  if (isTextElement(nextSibling)) {
-    return nextSibling.setText(' ' + friendlyText);
+  let nextSibling = date.getNextSibling();
+  while(nextSibling !== null) {
+    nextSibling.removeFromParent();
+    nextSibling = date.getNextSibling();
   }
   return date.getParent().asParagraph().appendText(' ' + friendlyText);
 }
