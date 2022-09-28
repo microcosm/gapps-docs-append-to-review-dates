@@ -1,4 +1,4 @@
-let docIds = null;
+let docIds, labels = null;
 let count = 0;
 let lock = null;
 
@@ -24,6 +24,7 @@ function releaseLock() {
 
 function run() {
   docIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
+  labels = PropertiesService.getScriptProperties().getProperty('TextLabels').split(',');
   let startTime = Date.now();
   while(Date.now() - startTime < 90000) {
     count++;
@@ -92,7 +93,7 @@ function formatFriendlyText(text, timeSinceDate) {
 
 function isReviewLabel(element) {
   return isTextElement(element)
-    && element.asText().getText().trim() === 'Last reviewed:'
+    && labels.includes(element.asText().getText().trim())
     && element.getParent().getType() === DocumentApp.ElementType.PARAGRAPH;
 }
 
