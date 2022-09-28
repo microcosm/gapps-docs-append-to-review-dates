@@ -2,12 +2,22 @@ let docIds = null;
 let count = 0;
 
 function onMinuteInterval() {
+  const scriptLock = LockService.getScriptLock();
+  if (!scriptLock.tryLock(60000)) {
+    Logger.log('Could not obtain lock after 60 seconds');
+    return;
+  }
+  Logger.log('Lock obtained');
+  initiate();
+}
+
+function initiate() {
   docIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
-  while(count < 6) {
+  while(count < 120) {
     count++;
     Logger.log('Iteration ' + count + ' beginning at ' + Date.now());
     processDocs();
-    Utilities.sleep(5000);
+    Utilities.sleep(500);
   }
 }
 
