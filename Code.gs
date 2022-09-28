@@ -1,5 +1,10 @@
 function onMinuteInterval() {
-  processChildren(DocumentApp.getActiveDocument().getBody());
+  const boundDocIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
+  boundDocIds.forEach(boundDocId => {
+    Logger.log('Opening ' + boundDocId);
+    processChildren(DocumentApp.openById(boundDocId).getBody());
+    Logger.log('Processing completed.');
+  });
 }
 
 function processChildren(parent) {
