@@ -1,35 +1,45 @@
 let docIds = null;
 let count = 0;
+let lock = null;
 
 function onMinuteInterval() {
-  const scriptLock = LockService.getScriptLock();
-  if (!scriptLock.tryLock(60000)) {
-    Logger.log('Could not obtain lock after 60 seconds');
-    return;
-  }
-  Logger.log('Lock obtained');
-  initiate();
+  if (!obtainLock()) return;
+  run();
+  releaseLock();
 }
 
-function initiate() {
+function obtainLock() {
+  lock = LockService.getScriptLock();
+  if (!lock.tryLock(90000)) {
+    Logger.log('Could not obtain script lock within 90 seconds');
+    return false;
+  }
+  Logger.log('Script lock obtained');
+  return true;
+}
+
+function releaseLock() {
+  lock.releaseLock();
+}
+
+function run() {
   docIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
-  while(count < 120) {
+  let startTime = Date.now();
+  while(Date.now() - startTime < 90000) {
     count++;
-    Logger.log('Iteration ' + count + ' beginning at ' + Date.now());
     processDocs();
-    Utilities.sleep(500);
   }
 }
 
 function processDocs() {
   docIds.forEach(docId => {
     try {
-      Logger.log('Processing ' + docId);
+      Logger.log(count + ': Processing ' + docId);
       const doc = DocumentApp.openById(docId);
       processChildren(doc.getBody());
       doc.saveAndClose();
     } catch (e) {
-      Logger.log('Could not bind to ' + docId);
+      Logger.log(count + ': Could not bind to ' + docId);
     }
   });
 }
