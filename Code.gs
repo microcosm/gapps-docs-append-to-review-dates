@@ -1,17 +1,26 @@
+let docIds = null;
+let count = 0;
+
 function onMinuteInterval() {
-  const boundDocIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
-  const docs = [];
-  boundDocIds.forEach(boundDocId => {
-    Logger.log('Binding to ' + boundDocId);
+  docIds = PropertiesService.getScriptProperties().getProperty('BoundDocIDs').split(',');
+  while(count < 6) {
+    count++;
+    Logger.log('Iteration ' + count + ' beginning at ' + Date.now());
+    processDocs();
+    Utilities.sleep(5000);
+  }
+}
+
+function processDocs() {
+  docIds.forEach(docId => {
     try {
-      docs.push(DocumentApp.openById(boundDocId));
+      Logger.log('Processing ' + docId);
+      const doc = DocumentApp.openById(docId);
+      processChildren(doc.getBody());
+      doc.saveAndClose();
     } catch (e) {
-      Logger.log('Could not bind to ' + boundDocId);
+      Logger.log('Could not bind to ' + docId);
     }
-  });
-  docs.forEach(doc => {
-    Logger.log('Processing ' + doc.getId());
-    processChildren(doc.getBody())
   });
 }
 
