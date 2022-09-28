@@ -20,21 +20,31 @@ function process(element) {
   }
 }
 
-function processDate(element) {
-  const previousSibling = element.getPreviousSibling();
+function processDate(date) {
+  const previousSibling = date.getPreviousSibling();
   if (isReviewLabel(previousSibling)) {
-    appendFriendlyText(element);
+    const timeSinceDate = timeSince(date.asDate().getTimestamp())
+    const text = appendFriendlyText(date, timeSinceDate.friendlyText);
+    formatFriendlyText(text, timeSinceDate);
   }
 }
 
-function appendFriendlyText(element) {
-  const friendlyText = ' ' + timeSince(element.asDate().getTimestamp());
-  const nextSibling = element.getNextSibling();
+function appendFriendlyText(date, friendlyText) {
+  const nextSibling = date.getNextSibling();
 
   if (isTextElement(nextSibling)) {
-    nextSibling.setText(friendlyText);
+    return nextSibling.setText(' ' + friendlyText);
+  }
+  return date.getParent().asParagraph().appendText(' ' + friendlyText);
+}
+
+function formatFriendlyText(text, timeSinceDate) {
+  if(timeSinceDate.intervalType === 'day') {
+    if(timeSinceDate.interval < 0) text.setForegroundColor('#cc0000');
+    else if(timeSinceDate.interval > 17) text.setForegroundColor('#bf9000');
+    else text.setForegroundColor('#38761d');
   } else {
-    element.getParent().asParagraph().appendText(friendlyText);
+    text.setForegroundColor('#cc0000');
   }
 }
 
@@ -65,12 +75,17 @@ function timeSince(date) {
     }
   }
 
-  return formatTimeSince(interval, intervalType);
+  return {
+    interval: interval,
+    intervalType: intervalType,
+    friendlyText: formatTimeSince(interval, intervalType)
+  };
 };
 
 function formatTimeSince(interval, intervalType) {
   if (intervalType === 'day') {
     if (interval === 0) return 'today';
+    if (interval === 1) return 'yesterday';
     if (interval < 0) return 'in the future';
   }
 
