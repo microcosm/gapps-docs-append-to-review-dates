@@ -67,13 +67,16 @@ function run() {
 
 function processDocs() {
   docIds.forEach(docId => {
+    let doc = false;
     try {
       Logger.log(count + ': Processing ' + docId);
-      const doc = DocumentApp.openById(docId);
+      doc = DocumentApp.openById(docId);
+    } catch (e) {
+      Logger.log(count + ': Could not bind to ' + docId + ' [' + e.name + ': ' +e.message + ']');
+    }
+    if(doc) {
       processChildren(doc.getBody());
       doc.saveAndClose();
-    } catch (e) {
-      Logger.log(count + ': Could not bind to ' + docId);
     }
   });
 }
@@ -99,10 +102,18 @@ function process(element) {
 function processDate(date) {
   const previousSibling = date.getPreviousSibling();
   if (isReviewLabel(previousSibling)) {
-    const timeSinceDate = timeSince(date.asDate().getTimestamp())
+    const timeSinceDate = timeSince(prepareDate(date))
     const text = appendFriendlyText(date, timeSinceDate.friendlyText);
     formatFriendlyText(text, timeSinceDate);
   }
+}
+
+function prepareDate(date) {
+  let preparedDate = date.asDate().getTimestamp();
+  preparedDate.setHours(0);
+  preparedDate.setMinutes(0);
+  preparedDate.setSeconds(0);
+  return preparedDate;
 }
 
 function appendFriendlyText(date, friendlyText) {
