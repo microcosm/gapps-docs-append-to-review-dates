@@ -95,16 +95,7 @@ function process(element) {
   const elementType = element.getType();
   switch(elementType) {
     case DocumentApp.ElementType.DATE:
-      processDate(element); break;
-  }
-}
-
-function processDate(date) {
-  const previousSibling = date.getPreviousSibling();
-  if (isReviewLabel(previousSibling)) {
-    const timeSinceDate = timeSince(prepareDate(date))
-    const text = appendFriendlyText(date, timeSinceDate.friendlyText);
-    formatFriendlyText(text, timeSinceDate);
+      setFriendlyText(element); break;
   }
 }
 
@@ -116,13 +107,34 @@ function prepareDate(date) {
   return preparedDate;
 }
 
-function appendFriendlyText(date, friendlyText) {
+function setFriendlyText(date) {
+  const timeSinceDate = timeSince(prepareDate(date));
+  const newFriendlyText = timeSinceDate.friendlyText;
+  const existingText = date.getNextSibling();
+
+  if(isReviewLabel(date.getPreviousSibling()) && !isAlreadyDesiredFriendlyText(existingText, newFriendlyText)) {
+    clearExistingFriendlyText(date);
+    let text = appendNewFriendlyText(date, newFriendlyText);
+    formatFriendlyText(text, timeSinceDate);
+  }
+}
+
+function isAlreadyDesiredFriendlyText(existingText, newFriendlyText) {
+  return existingText !== null &&
+    isTextElement(existingText) &&
+    existingText.asText().getText().trim() === newFriendlyText;
+}
+
+function clearExistingFriendlyText(date) {
   let nextSibling = date.getNextSibling();
   while(nextSibling !== null) {
     nextSibling.removeFromParent();
     nextSibling = date.getNextSibling();
   }
-  return date.getParent().asParagraph().appendText(' ' + friendlyText);
+}
+
+function appendNewFriendlyText(date, newFriendlyText) {
+  return date.getParent().asParagraph().appendText(' ' + newFriendlyText);
 }
 
 function formatFriendlyText(text, timeSinceDate) {
